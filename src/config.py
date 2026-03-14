@@ -39,6 +39,7 @@ RANDOM_SEED   = 42
 # not what your local folders are called.
 #
 CLASSES     = ["glioma", "meningioma", "pituitary", "notumor"]
+#CLASSES = ["glioma", "meningioma", "notumor", "pituitary"]
 NUM_CLASSES = len(CLASSES)
 
 EPOCHS        = 50

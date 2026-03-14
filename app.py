@@ -3,13 +3,6 @@ app.py — Streamlit Brain Tumor MRI Classifier.
 
 Run with:
     streamlit run app.py
-
-IMPORTANT — Class name mapping:
-    The model was trained on Kaggle with folder names:
-        glioma / meningioma / notumor / pituitary  (all lowercase)
-    CLASSES in config.py must exactly match those names.
-    Local data folders may be named differently (e.g. No_Tumor) — that is fine,
-    only config.py CLASSES matters for inference.
 """
 
 import os
@@ -33,8 +26,6 @@ st.set_page_config(
 )
 
 # ── Display labels: internal name → clean UI label ───────────────────────────
-# Model uses lowercase names (glioma, meningioma, notumor, pituitary)
-# UI shows capitalised, readable names
 DISPLAY_LABELS = {
     "glioma":      "Glioma",
     "meningioma":  "Meningioma",
@@ -106,17 +97,21 @@ if uploaded_file is not None:
         col1.metric("Prediction", display(predicted_class))
         col2.metric("Confidence", f"{confidence:.2%}")
 
-        pred_idx = int(np.argmax(probs))
+        # FIXED: convert probs to plain Python list to avoid numpy.int64
+        # being passed as pred_index into Grad-CAM, which causes StridedSlice
+        # "slice index out of bounds" in TF 2.20 / Keras 3.x
+        probs_list = probs.tolist() if hasattr(probs, "tolist") else list(probs)
+        pred_idx   = int(probs_list.index(max(probs_list)))
 
         # Probability bar chart
         display_names = [display(c) for c in CLASSES]
         bar_colors    = ["crimson" if c == predicted_class else "steelblue" for c in CLASSES]
         fig, ax = plt.subplots(figsize=(6, 3))
-        ax.bar(display_names, probs, color=bar_colors, edgecolor="white")
+        ax.bar(display_names, probs_list, color=bar_colors, edgecolor="white")
         ax.set_ylabel("Probability")
         ax.set_ylim(0, 1.15)
         ax.set_title("Class Probabilities")
-        for i, v in enumerate(probs):
+        for i, v in enumerate(probs_list):
             ax.text(i, v + 0.02, f"{v:.2f}", ha="center", va="bottom", fontsize=9)
         fig.tight_layout()
         st.pyplot(fig)
@@ -134,6 +129,8 @@ if uploaded_file is not None:
                     preprocessed    = load_and_preprocess(temp_path)
                     # squeeze batch dim: (1,224,224,3) → (224,224,3)
                     img_for_gradcam = np.squeeze(preprocessed, axis=0)
+
+                    # pred_idx is already a plain Python int from probs_list above
                     heatmap = make_gradcam_heatmap(img_for_gradcam, model, pred_idx)
                     overlay = overlay_heatmap(heatmap, np.array(pil_image), alpha=alpha)
 
