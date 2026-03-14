@@ -1,5 +1,5 @@
-
-models/*.keras
-models/*.zip
+*.keras filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
 models/brain_tumor_vgg16.keras filter=lfs diff=lfs merge=lfs -text
 models/brain_tumor_vgg16.keras.zip filter=lfs diff=lfs merge=lfs -text
