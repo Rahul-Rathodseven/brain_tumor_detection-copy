@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+venv/
+.venv/
+env/
+
+anaconda_projects/
+data/
+outputs/
+
+notebook/.ipynb_checkpoints/
